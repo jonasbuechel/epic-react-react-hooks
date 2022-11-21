@@ -15,8 +15,8 @@ function Greeting({initialName = ''}) {
   // The callback should set the `name` in localStorage.
   // 💰 window.localStorage.setItem('name', name)
   useEffect(() => {
-    window.localStorage.setItem('name', name)
-  })
+    window.localStorage.setItem('name', String(name))
+  }, [name])
 
   function handleChange(event) {
     setName(event.target.value)
