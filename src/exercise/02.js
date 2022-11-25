@@ -10,7 +10,7 @@ function useLocalStorageState(key, defaultValue) {
   )
 
   useEffect(() => {
-    window.localStorage.setItem(key, String(name))
+    window.localStorage.setItem(key, String(state))
   }, [state, defaultValue])
 
   return [state, setState]
