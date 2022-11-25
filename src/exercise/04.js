@@ -3,11 +3,16 @@
 
 import * as React from 'react'
 import {useState} from 'react'
+import {useLocalStorageState} from '../utils'
 
 function Board() {
   const [clickCounter, setClickCounter] = useState(0)
   const squaresDefaultValue = Array(9).fill(null)
-  const [squares, setSquares] = useState(squaresDefaultValue)
+  const [squares, setSquares] = useLocalStorageState(
+    'squares',
+    squaresDefaultValue,
+  )
+
   const nextValue = calculateNextValue(squares)
   const winner = calculateWinner(squares)
   const status = calculateStatus(winner, squares, nextValue, clickCounter)
