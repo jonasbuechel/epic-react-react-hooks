@@ -2,7 +2,8 @@
 // http://localhost:3000/isolated/exercise/04.js
 
 import * as React from 'react'
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
+import {useLocalStorageState} from '../utils'
 
 function Board({squares, onSquareClicked}) {
   function renderSquare(i) {
@@ -36,7 +37,11 @@ function Board({squares, onSquareClicked}) {
 
 function Game() {
   const movesDefaultValue = [Array(9).fill(null)]
-  const [moves, setMoves] = useState(movesDefaultValue)
+  const [moves, setMoves] = useLocalStorageState(
+    'tic-tac-toe:history',
+    movesDefaultValue,
+  )
+
   const [currentMoveIndex, setCurrentMoveIndex] = useState(0)
   const currentSquares = moves[currentMoveIndex]
   const nextValue = calculateNextValue(currentSquares)
@@ -59,13 +64,16 @@ function Game() {
     const existingMoves = moves.slice(0, currentMoveIndex + 1)
     const movesCopy = [...existingMoves, currentMoveCopy]
 
-    setCurrentMoveIndex(movesCopy.length - 1)
     setMoves(movesCopy)
   }
 
   function selectMove(moveIndex) {
     setCurrentMoveIndex(moveIndex)
   }
+
+  useEffect(() => {
+    setCurrentMoveIndex(moves.length - 1)
+  }, [moves])
 
   return (
     <div className="game">
@@ -92,11 +100,11 @@ function Game() {
 }
 
 function MovesNav({moves, onMoveCLicked, currentMoveIndex}) {
-  return moves.map((move, index) => {
+  const listItems = moves.map((move, index) => {
     const key = move.filter(item => item !== null).length
 
     return (
-      <div key={key}>
+      <div key={key} role={'listitem'}>
         <button
           disabled={index === currentMoveIndex}
           onClick={() => onMoveCLicked(index)}
@@ -107,6 +115,8 @@ function MovesNav({moves, onMoveCLicked, currentMoveIndex}) {
       </div>
     )
   })
+
+  return <div role={'list'}>{listItems}</div>
 }
 
 // eslint-disable-next-line no-unused-vars
