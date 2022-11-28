@@ -3,39 +3,11 @@
 
 import * as React from 'react'
 import {useState} from 'react'
-import {useLocalStorageState} from '../utils'
 
-function Board() {
-  const [clickCounter, setClickCounter] = useState(0)
-  const squaresDefaultValue = Array(9).fill(null)
-  const [squares, setSquares] = useLocalStorageState(
-    'squares',
-    squaresDefaultValue,
-  )
-
-  const nextValue = calculateNextValue(squares)
-  const winner = calculateWinner(squares)
-  const status = calculateStatus(winner, squares, nextValue, clickCounter)
-
-  function selectSquare(squareIndex) {
-    if (winner || squares[squareIndex]) {
-      return
-    }
-
-    const squaresCopy = [...squares]
-    squaresCopy[squareIndex] = nextValue
-    setClickCounter(clickCounter + 1)
-    setSquares(squaresCopy)
-  }
-
-  function restart() {
-    setClickCounter(0)
-    setSquares(squaresDefaultValue)
-  }
-
+function Board({squares, onSquareClicked}) {
   function renderSquare(i) {
     return (
-      <button className="square" onClick={() => selectSquare(i)}>
+      <button className="square" onClick={() => onSquareClicked(i)}>
         {squares[i]}
       </button>
     )
@@ -43,8 +15,6 @@ function Board() {
 
   return (
     <div>
-      <div className="status">{status}</div>
-      <div className="moves">Moves: {clickCounter}</div>
       <div className="board-row">
         {renderSquare(0)}
         {renderSquare(1)}
@@ -60,25 +30,83 @@ function Board() {
         {renderSquare(7)}
         {renderSquare(8)}
       </div>
-      <button className="restart" onClick={restart}>
-        restart
-      </button>
     </div>
   )
 }
 
 function Game() {
+  const movesDefaultValue = [Array(9).fill(null)]
+  const [moves, setMoves] = useState(movesDefaultValue)
+  const [currentMoveIndex, setCurrentMoveIndex] = useState(0)
+  const currentSquares = moves[currentMoveIndex]
+  const nextValue = calculateNextValue(currentSquares)
+  const winner = calculateWinner(currentSquares)
+  const status = calculateStatus(winner, currentSquares, nextValue)
+
+  function restart() {
+    setMoves(movesDefaultValue)
+    setCurrentMoveIndex(0)
+  }
+
+  function selectSquare(squareIndex) {
+    if (winner || currentSquares[squareIndex]) {
+      return
+    }
+    const currentMoveCopy = [...moves[currentMoveIndex]]
+
+    currentMoveCopy[squareIndex] = nextValue
+
+    const existingMoves = moves.slice(0, currentMoveIndex + 1)
+    const movesCopy = [...existingMoves, currentMoveCopy]
+
+    setCurrentMoveIndex(movesCopy.length - 1)
+    setMoves(movesCopy)
+  }
+
+  function selectMove(moveIndex) {
+    setCurrentMoveIndex(moveIndex)
+  }
+
   return (
     <div className="game">
       <div className="game-board">
-        <Board />
+        <Board
+          onClick={selectSquare}
+          squares={currentSquares}
+          onSquareClicked={squareIndex => selectSquare(squareIndex)}
+        />
+        <button className="restart" onClick={restart}>
+          restart
+        </button>
+      </div>
+      <div className="game-info">
+        <div>{status}</div>
+        <MovesNav
+          moves={moves}
+          onMoveCLicked={index => selectMove(index)}
+          currentMoveIndex={currentMoveIndex}
+        />
       </div>
     </div>
   )
 }
 
+function MovesNav({moves, onMoveCLicked, currentMoveIndex}) {
+  return moves.map((move, index) => {
+    const key = move.filter(item => item !== null).length
+    const style = index > currentMoveIndex ? {opacity: 0.33} : {}
+    return (
+      <div style={style} key={key}>
+        <button onClick={() => onMoveCLicked(index)}>
+          {index === 0 ? 'Go to game start' : `Go to move #${index}`}
+        </button>
+      </div>
+    )
+  })
+}
+
 // eslint-disable-next-line no-unused-vars
-function calculateStatus(winner, squares, nextValue, moves) {
+function calculateStatus(winner, squares, nextValue) {
   return winner
     ? `Winner: ${winner}`
     : squares.every(Boolean)
