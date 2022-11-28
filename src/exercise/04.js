@@ -94,11 +94,15 @@ function Game() {
 function MovesNav({moves, onMoveCLicked, currentMoveIndex}) {
   return moves.map((move, index) => {
     const key = move.filter(item => item !== null).length
-    const style = index > currentMoveIndex ? {opacity: 0.33} : {}
+
     return (
-      <div style={style} key={key}>
-        <button onClick={() => onMoveCLicked(index)}>
-          {index === 0 ? 'Go to game start' : `Go to move #${index}`}
+      <div key={key}>
+        <button
+          disabled={index === currentMoveIndex}
+          onClick={() => onMoveCLicked(index)}
+        >
+          {index === 0 ? 'go to game start' : `go to move #${index}`}
+          {index === currentMoveIndex && ' (current)'}
         </button>
       </div>
     )
