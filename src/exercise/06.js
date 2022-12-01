@@ -15,48 +15,50 @@ import {
 import {useEffect, useState} from 'react'
 
 function PokemonInfo({pokemonName}) {
-  const [pokemon, setPokemon] = useState(null)
-  const [error, setError] = useState(null)
-  const [status, setStatus] = useState('idle')
+  const [state, setState] = useState({
+    status: 'idle',
+    pokemon: null,
+    error: null,
+  })
 
   useEffect(() => {
     if (!pokemonName) {
       return
     }
 
-    setPokemon(null)
-    setStatus('pending')
+    setState({pokemon: null, status: 'pending', error: null})
 
     fetchPokemon(pokemonName, 1500)
       .then(
         pokemonData => {
-          setStatus('resolved')
-          setPokemon(pokemonData)
+          setState({pokemon: pokemonData, status: 'resolved', error: null})
         },
         error => {
-          setStatus('rejected')
-          setError(error)
-        }, // promise rejected, also gets caught by catch
+          setState({pokemon: null, status: 'rejected', error})
+        },
       )
       .catch(error => {
-        setStatus('error')
-        setError('A general error happened')
+        setState({
+          pokemon: null,
+          status: 'error',
+          error,
+        })
       })
   }, [pokemonName])
 
-  if (status === 'rejected' || status === 'error') {
+  if (state.status === 'rejected' || state.status === 'error') {
     return (
       <div role="alert">
-        There was an error:{error.message}
-        <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
+        There was an error:
+        <pre style={{whiteSpace: 'normal'}}>{state.error.message}</pre>
       </div>
     )
-  } else if (status === 'idle') {
+  } else if (state.status === 'idle') {
     return 'Submit a pokemon'
-  } else if (status === 'pending') {
+  } else if (state.status === 'pending') {
     return <PokemonInfoFallback name={pokemonName} />
-  } else if (status === 'resolved') {
-    return <PokemonDataView pokemon={pokemon} />
+  } else if (state.status === 'resolved') {
+    return <PokemonDataView pokemon={state.pokemon} />
   }
 }
 
