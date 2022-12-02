@@ -13,10 +13,11 @@ import {
   PokemonInfoFallback,
 } from '../pokemon'
 import {useEffect, useState} from 'react'
+import {ErrorBoundary} from 'react-error-boundary'
 
 function PokemonInfo({pokemonName}) {
   const [state, setState] = useState({
-    status: 'idle',
+    status: pokemonName ? 'pending' : 'idle',
     pokemon: null,
     error: null,
   })
@@ -30,7 +31,7 @@ function PokemonInfo({pokemonName}) {
 
     setState({pokemon: null, status: 'pending', error: null})
 
-    fetchPokemon(pokemonName, 1500)
+    fetchPokemon(pokemonName, 250)
       .then(
         pokemonData => {
           setState({pokemon: pokemonData, status: 'resolved', error: null})
@@ -59,36 +60,12 @@ function PokemonInfo({pokemonName}) {
   }
 }
 
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {hasError: false, errorMessage: ''}
-  }
-
-  static getDerivedStateFromError(error) {
-    return {hasError: true}
-  }
-
-  componentDidCatch(error, errorInfo) {
-    this.setState({errorMessage: error.message})
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <this.props.fallbackComponent errorMessage={this.state.errorMessage} />
-      )
-    }
-
-    return this.props.children
-  }
-}
-
-function ErrorFallbackComponent({errorMessage}) {
+function ErrorFallback({error, resetErrorBoundary}) {
   return (
     <div role="alert">
       There was an error:
-      <pre style={{whiteSpace: 'normal'}}>{errorMessage}</pre>
+      <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
+      <button onClick={resetErrorBoundary}>Restart</button>
     </div>
   )
 }
@@ -106,8 +83,11 @@ function App() {
       <hr />
       <div className="pokemon-info">
         <ErrorBoundary
-          key={pokemonName}
-          fallbackComponent={ErrorFallbackComponent}
+          FallbackComponent={ErrorFallback}
+          onReset={() => {
+            setPokemonName('')
+          }}
+          resetKeys={[pokemonName]}
         >
           <PokemonInfo pokemonName={pokemonName} />
         </ErrorBoundary>
