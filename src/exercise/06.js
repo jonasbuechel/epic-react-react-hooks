@@ -75,17 +75,22 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      // You can render any custom fallback UI
       return (
-        <>
-          <h1>Oops: </h1>
-          <p>{this.state.errorMessage}</p>
-        </>
+        <this.props.fallbackComponent errorMessage={this.state.errorMessage} />
       )
     }
 
     return this.props.children
   }
+}
+
+function ErrorFallbackComponent({errorMessage}) {
+  return (
+    <div role="alert">
+      There was an error:
+      <pre style={{whiteSpace: 'normal'}}>{errorMessage}</pre>
+    </div>
+  )
 }
 
 function App() {
@@ -100,7 +105,7 @@ function App() {
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
       <div className="pokemon-info">
-        <ErrorBoundary>
+        <ErrorBoundary fallbackComponent={ErrorFallbackComponent}>
           <PokemonInfo pokemonName={pokemonName} />
         </ErrorBoundary>
       </div>
